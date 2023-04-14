@@ -20,6 +20,9 @@ var (
 
 type UniversalClient interface {
 	redis.UniversalClient
+
+	NamespacePrefix() string
+	Key(parts ...string) string
 }
 
 type Client struct {
