@@ -1,9 +1,9 @@
 package redix
 
 type Config struct {
-	XConfig
-	DSN  string `mapstructure:"dsn" json:"dsn"`
-	Cert string `mapstructure:"cert" json:"cert"`
+	XConfig `mapstructure:",squash"`
+	DSN     string `mapstructure:"dsn" json:"dsn"`
+	Cert    string `mapstructure:"cert" json:"cert"`
 }
 
 type XConfig struct {
