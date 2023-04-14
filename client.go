@@ -14,12 +14,11 @@ const (
 	keyDelimiter = ":"
 )
 
-var (
-	_ redis.UniversalClient = (*Client)(nil)
-	_ XClient               = (*Client)(nil)
-)
+var _ UniversalClient = (*Client)(nil)
 
-type XClient interface {
+type UniversalClient interface {
+	redis.UniversalClient
+
 	NamespacePrefix() string
 	Key(parts ...string) string
 }
