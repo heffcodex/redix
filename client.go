@@ -15,22 +15,21 @@ const (
 )
 
 var (
-	_ UniversalClient = (*Client)(nil)
+	_ redis.UniversalClient = (*XClient)(nil)
+	_ Client                = (*XClient)(nil)
 )
 
-type UniversalClient interface {
-	redis.UniversalClient
-
+type Client interface {
 	NamespacePrefix() string
 	Key(parts ...string) string
 }
 
-type Client struct {
+type XClient struct {
 	redis.UniversalClient
 	ns string
 }
 
-func NewClient(config Config) (*Client, error) {
+func NewClient(config Config) (*XClient, error) {
 	opts, err := redis.ParseURL(config.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("parse DSN: %w", err)
@@ -61,21 +60,21 @@ func NewClient(config Config) (*Client, error) {
 	return wrapped, nil
 }
 
-func WrapClient(c redis.UniversalClient, extraConfig XConfig) *Client {
-	return &Client{
+func WrapClient(c redis.UniversalClient, extraConfig XConfig) *XClient {
+	return &XClient{
 		UniversalClient: c,
 		ns:              extraConfig.Namespace,
 	}
 }
 
-func (c *Client) NamespacePrefix() string {
+func (c *XClient) NamespacePrefix() string {
 	return c.key("")
 }
 
-func (c *Client) Key(parts ...string) string {
+func (c *XClient) Key(parts ...string) string {
 	return c.key(parts...)
 }
 
-func (c *Client) key(parts ...string) string {
+func (c *XClient) key(parts ...string) string {
 	return strings.Join(append([]string{c.ns}, parts...), keyDelimiter)
 }
