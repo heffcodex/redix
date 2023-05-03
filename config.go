@@ -2,12 +2,12 @@ package redix
 
 type Config struct {
 	XConfig `mapstructure:",squash"`
-	DSN     string `mapstructure:"dsn" json:"dsn"`
-	Cert    string `mapstructure:"cert" json:"cert"`
+	DSN     string `json:"dsn" yaml:"dsn" mapstructure:"dsn"`
+	Cert    string `json:"cert" yaml:"cert" mapstructure:"cert"`
 }
 
 type XConfig struct {
-	Namespace string `mapstructure:"namespace" json:"namespace"`
+	Namespace string `json:"namespace" yaml:"namespace" mapstructure:"namespace"`
 }
 
 func (c *XConfig) AppendNamespace(ns string) {

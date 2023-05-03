@@ -19,7 +19,7 @@ var _ UniversalClient = (*Client)(nil)
 type UniversalClient interface {
 	redis.UniversalClient
 
-	NamespacePrefix() string
+	Namespace() string
 	Key(parts ...string) string
 }
 
@@ -66,8 +66,8 @@ func WrapClient(c redis.UniversalClient, extraConfig XConfig) *Client {
 	}
 }
 
-func (c *Client) NamespacePrefix() string {
-	return c.key("")
+func (c *Client) Namespace() string {
+	return c.key()
 }
 
 func (c *Client) Key(parts ...string) string {
