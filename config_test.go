@@ -23,12 +23,12 @@ func TestNamespace_Append(t *testing.T) {
 
 func TestClientConfigCert_setupTLS(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		c := ClientConfigCert{}
+		c := ConfigCert{}
 		require.NoError(t, c.setupTLS(nil))
 	})
 
 	t.Run("no cert", func(t *testing.T) {
-		c := ClientConfigCert{}
+		c := ConfigCert{}
 		tc := &tls.Config{}
 
 		require.NoError(t, c.setupTLS(tc))
@@ -39,7 +39,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 	t.Run("env", func(t *testing.T) {
 		const envKey = "TEST_CERT_ENV"
 
-		c := ClientConfigCert{Env: envKey}
+		c := ConfigCert{Env: envKey}
 
 		t.Run("empty", func(t *testing.T) {
 			tc := &tls.Config{}
@@ -76,7 +76,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 
 	t.Run("file", func(t *testing.T) {
 		t.Run("wrong filename", func(t *testing.T) {
-			c := ClientConfigCert{File: "wrong"}
+			c := ConfigCert{File: "wrong"}
 			tc := &tls.Config{}
 
 			require.Error(t, c.setupTLS(tc))
@@ -90,7 +90,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 
 			defer func() { _ = os.Remove(filename) }()
 
-			c := ClientConfigCert{File: filename}
+			c := ConfigCert{File: filename}
 			tc := &tls.Config{}
 
 			require.Error(t, c.setupTLS(tc))
@@ -105,7 +105,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 				_ = os.Remove(key)
 			}()
 
-			c := ClientConfigCert{File: cert}
+			c := ConfigCert{File: cert}
 			tc := &tls.Config{}
 
 			require.NoError(t, c.setupTLS(tc))
@@ -116,7 +116,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 
 	t.Run("data", func(t *testing.T) {
 		t.Run("wrong data", func(t *testing.T) {
-			c := ClientConfigCert{Data: []byte("wrong")}
+			c := ConfigCert{Data: []byte("wrong")}
 			tc := &tls.Config{}
 
 			require.Error(t, c.setupTLS(tc))
@@ -126,7 +126,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 			cert, _, err := testcerts.GenerateCerts()
 			require.NoError(t, err)
 
-			c := ClientConfigCert{Data: cert}
+			c := ConfigCert{Data: cert}
 			tc := &tls.Config{}
 
 			require.NoError(t, c.setupTLS(tc))

@@ -29,22 +29,19 @@ func (ns Namespace) Append(parts ...string) Namespace {
 }
 
 type Config struct {
-	ClientConfig `mapstructure:",squash"` //nolint: tagliatelle // squash does not need any tag
-	Namespace    Namespace                `json:"namespace" yaml:"namespace" mapstructure:"namespace"`
+	Name      string     `json:"name,omitempty" yaml:"name,omitempty" mapstructure:"name,omitempty"`
+	Namespace Namespace  `json:"namespace,omitempty" yaml:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+	DSN       string     `json:"dsn" yaml:"dsn" mapstructure:"dsn"`
+	Cert      ConfigCert `json:"cert,omitempty" yaml:"cert,omitempty" mapstructure:"cert,omitempty"`
 }
 
-type ClientConfig struct {
-	DSN  string           `json:"dsn" yaml:"dsn" mapstructure:"dsn"`
-	Cert ClientConfigCert `json:"cert,omitempty" yaml:"cert,omitempty" mapstructure:"cert,omitempty"`
-}
-
-type ClientConfigCert struct {
+type ConfigCert struct {
 	Env  string `json:"env,omitempty" yaml:"env,omitempty" mapstructure:"env,omitempty"`
 	File string `json:"file,omitempty" yaml:"file,omitempty" mapstructure:"file,omitempty"`
 	Data []byte `json:"data,omitempty" yaml:"data,omitempty" mapstructure:"data,omitempty"`
 }
 
-func (c *ClientConfigCert) setupTLS(cfg *tls.Config) error {
+func (c *ConfigCert) setupTLS(cfg *tls.Config) error {
 	if cfg == nil {
 		return nil
 	}

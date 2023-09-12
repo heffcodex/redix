@@ -20,14 +20,14 @@ type Client struct {
 	ns Namespace
 }
 
-func NewClient(name string, config *Config) (*Client, error) {
+func NewClient(config *Config) (*Client, error) {
 	opts, err := redis.ParseURL(config.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("parse DSN: %w", err)
 	}
 
-	if name != "" {
-		opts.ClientName = name
+	if config.Name != "" {
+		opts.ClientName = config.Name
 	}
 
 	if err = config.Cert.setupTLS(opts.TLSConfig); err != nil {
