@@ -1,17 +1,9 @@
 package redix
 
 import (
-	"crypto/x509"
-	"errors"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/redis/go-redis/v9"
-)
-
-const (
-	keyDelimiter = ":"
 )
 
 var _ UniversalClient = (*Client)(nil)
@@ -19,16 +11,16 @@ var _ UniversalClient = (*Client)(nil)
 type UniversalClient interface {
 	redis.UniversalClient
 
-	Namespace() string
+	Namespace() Namespace
 	Key(parts ...string) string
 }
 
 type Client struct {
 	redis.UniversalClient
-	ns string
+	ns Namespace
 }
 
-func NewClient(name string, config Config) (*Client, error) {
+func NewClient(name string, config *Config) (*Client, error) {
 	opts, err := redis.ParseURL(config.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("parse DSN: %w", err)
@@ -38,46 +30,26 @@ func NewClient(name string, config Config) (*Client, error) {
 		opts.ClientName = name
 	}
 
-	if opts.TLSConfig != nil {
-		opts.TLSConfig.InsecureSkipVerify = true
-
-		if config.Cert != "" {
-			pemBytes, err := os.ReadFile(config.Cert)
-			if err != nil {
-				return nil, fmt.Errorf("read cert: %w", err)
-			}
-
-			certPool := x509.NewCertPool()
-			if !certPool.AppendCertsFromPEM(pemBytes) {
-				return nil, errors.New("fill cert pool")
-			}
-
-			opts.TLSConfig.InsecureSkipVerify = false
-			opts.TLSConfig.RootCAs = certPool
-		}
+	if err = config.Cert.setupTLS(opts.TLSConfig); err != nil {
+		return nil, fmt.Errorf("setup TLS: %w", err)
 	}
 
-	client := redis.NewClient(opts)
-	wrapped := WrapClient(client, config.XConfig)
+	rc := redis.NewClient(opts)
 
-	return wrapped, nil
-}
-
-func WrapClient(c redis.UniversalClient, extraConfig XConfig) *Client {
 	return &Client{
-		UniversalClient: c,
-		ns:              extraConfig.Namespace,
-	}
+		UniversalClient: rc,
+		ns:              config.Namespace,
+	}, nil
 }
 
-func (c *Client) Namespace() string {
-	return c.key()
+func (c *Client) Namespace() Namespace {
+	return c.ns
+}
+
+func (c *Client) KeyPrefix() string {
+	return c.Key("")
 }
 
 func (c *Client) Key(parts ...string) string {
-	return c.key(parts...)
-}
-
-func (c *Client) key(parts ...string) string {
-	return strings.Join(append([]string{c.ns}, parts...), keyDelimiter)
+	return c.ns.Append(parts...).String()
 }

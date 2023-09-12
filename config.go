@@ -1,20 +1,64 @@
 package redix
 
-type Config struct {
-	XConfig `mapstructure:",squash"`
-	DSN     string `json:"dsn" yaml:"dsn" mapstructure:"dsn"`
-	Cert    string `json:"cert" yaml:"cert" mapstructure:"cert"`
+import (
+	"crypto/tls"
+	"os"
+	"strings"
+
+	"github.com/heffcodex/redix/internal"
+)
+
+const (
+	KeyDelimiter = ":"
+)
+
+type Namespace string
+
+func (ns Namespace) String() string {
+	return string(ns)
 }
 
-type XConfig struct {
-	Namespace string `json:"namespace" yaml:"namespace" mapstructure:"namespace"`
-}
+func (ns Namespace) Append(parts ...string) Namespace {
+	var slice []string
 
-func (c *XConfig) AppendNamespace(ns string) {
-	if c.Namespace == "" {
-		c.Namespace = ns
-		return
+	if ns != "" {
+		slice = []string{string(ns)}
 	}
 
-	c.Namespace = c.Namespace + keyDelimiter + ns
+	return Namespace(strings.Join(append(slice, parts...), KeyDelimiter))
+}
+
+type Config struct {
+	ClientConfig `mapstructure:",squash"` //nolint: tagliatelle // squash does not need any tag
+	Namespace    Namespace                `json:"namespace" yaml:"namespace" mapstructure:"namespace"`
+}
+
+type ClientConfig struct {
+	DSN  string           `json:"dsn" yaml:"dsn" mapstructure:"dsn"`
+	Cert ClientConfigCert `json:"cert,omitempty" yaml:"cert,omitempty" mapstructure:"cert,omitempty"`
+}
+
+type ClientConfigCert struct {
+	Env  string `json:"env,omitempty" yaml:"env,omitempty" mapstructure:"env,omitempty"`
+	File string `json:"file,omitempty" yaml:"file,omitempty" mapstructure:"file,omitempty"`
+	Data []byte `json:"data,omitempty" yaml:"data,omitempty" mapstructure:"data,omitempty"`
+}
+
+func (c *ClientConfigCert) setupTLS(cfg *tls.Config) error {
+	if cfg == nil {
+		return nil
+	}
+
+	cfg.InsecureSkipVerify = true
+
+	switch {
+	case c.Env != "":
+		return internal.SetupTLSFile(cfg, os.Getenv(c.Env))
+	case c.File != "":
+		return internal.SetupTLSFile(cfg, c.File)
+	case len(c.Data) > 0:
+		return internal.SetupTLSData(cfg, c.Data)
+	}
+
+	return nil
 }
