@@ -20,7 +20,7 @@ type Client struct {
 	ns Namespace
 }
 
-func NewClient(config *Config) (*Client, error) {
+func NewClient(config Config) (*Client, error) { //nolint: gocritic // hugeParam: it's ok
 	opts, err := redis.ParseURL(config.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("parse DSN: %w", err)
