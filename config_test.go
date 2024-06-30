@@ -85,7 +85,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 		t.Run("wrong contents", func(t *testing.T) {
 			filename := os.TempDir() + "/wtf.crt"
 
-			err := os.WriteFile(filename, []byte("wrong"), 0600)
+			err := os.WriteFile(filename, []byte("wrong"), 0o600)
 			require.NoError(t, err)
 
 			defer func() { _ = os.Remove(filename) }()

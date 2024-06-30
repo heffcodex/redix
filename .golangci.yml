@@ -6,7 +6,8 @@ run:
   go: ""
 
 output:
-  format: line-number
+  formats:
+    - format: line-number
   print-issued-lines: false
   print-linter-name: true
   uniq-by-line: true
@@ -35,7 +36,7 @@ linters-settings:
     sections:
       - standard
       - default
-      - prefix(github.com/heffcodex/redix)
+      - prefix(github.com/heffcodex/theapp)
     skip-generated: true
     custom-order: true
 
@@ -45,15 +46,13 @@ linters-settings:
       - style
       - performance
       - opinionated
-    disabled-tags:
-      - experimental
+    #disabled-tags:
+    #  - experimental
 
-    enabled-checks:
-      - tooManyResultsChecker
-      - nestingReduce
-      - unnamedResult
-      - truncateCmp
-    disabled-checks: []
+    #enabled-checks: []
+    disabled-checks:
+      - emptyFallthrough
+      - whyNoLint
 
     settings:
       captLocal:
@@ -120,8 +119,6 @@ linters-settings:
     watch-for-scripts: []
 
   govet:
-    check-shadowing: true
-
     settings:
       shadow:
         strict: false
@@ -335,8 +332,7 @@ linters-settings:
       - name: max-public-structs
         disabled: true
       - name: modifies-parameter
-        severity: warning
-        disabled: false
+        disabled: true
       - name: modifies-value-receiver
         severity: warning
         disabled: false
@@ -426,7 +422,7 @@ linters-settings:
 
   tagliatelle:
     case:
-      use-field-name: true
+      use-field-name: false
       rules:
         json: snake
         yaml: camel
@@ -507,14 +503,13 @@ linters:
     - asciicheck
     - bidichk
     - cyclop
-    - deadcode
     - decorder
     - depguard
     - dupword
+    - err113
     - errchkjson
     - execinquery
     - exhaustive
-    - exhaustivestruct
     - exhaustruct
     - forbidigo
     - forcetypeassert
@@ -526,35 +521,26 @@ linters:
     - goconst
     - gocyclo
     - godox
-    - goerr113
     - gofmt
     - gofumpt
     - goheader
     - goimports
-    - golint
     - gomnd
     - gomoddirectives
     - gosimple
     - grouper
-    - ifshort
     - interfacebloat
-    - interfacer
     - ireturn
     - lll
     - maintidx
-    - maligned
     - misspell
     - nakedret
     - nlreturn
     - nonamedreturns
-    - nosnakecase
-    - scopelint
     - staticcheck
-    - structcheck
     - stylecheck
     - tagalign
     - testpackage
-    - varcheck
     - varnamelen
     - whitespace
     - wrapcheck
@@ -567,7 +553,7 @@ issues:
   new: false
   fix: false
   exclude-rules:
-    - linters:
-        - gosec
-      path: "_test.go$"
+    - path: "config_test.go"
       text: "G402"
+      linters:
+        - gosec
