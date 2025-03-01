@@ -3,30 +3,9 @@ package redix
 import (
 	"crypto/tls"
 	"os"
-	"strings"
 
 	"github.com/heffcodex/redix/internal"
 )
-
-const (
-	KeyDelimiter = ":"
-)
-
-type Namespace string
-
-func (ns Namespace) String() string {
-	return string(ns)
-}
-
-func (ns Namespace) Append(parts ...string) Namespace {
-	var slice []string
-
-	if ns != "" {
-		slice = []string{string(ns)}
-	}
-
-	return Namespace(strings.Join(append(slice, parts...), KeyDelimiter))
-}
 
 type Config struct {
 	Name      string     `json:"name,omitempty" yaml:"name,omitempty" mapstructure:"name,omitempty"`
@@ -42,20 +21,19 @@ type ConfigCert struct {
 }
 
 func (c *ConfigCert) setupTLS(cfg *tls.Config) error {
-	if cfg == nil {
-		return nil
+	if certFile, ok := os.LookupEnv(c.Env); ok {
+		return internal.SetupTLSFile(cfg, certFile)
+	}
+
+	if certFile := c.File; certFile != "" {
+		return internal.SetupTLSFile(cfg, certFile)
+	}
+
+	if len(c.Data) > 0 {
+		return internal.SetupTLSData(cfg, c.Data)
 	}
 
 	cfg.InsecureSkipVerify = true
-
-	switch {
-	case c.Env != "":
-		return internal.SetupTLSFile(cfg, os.Getenv(c.Env))
-	case c.File != "":
-		return internal.SetupTLSFile(cfg, c.File)
-	case len(c.Data) > 0:
-		return internal.SetupTLSData(cfg, c.Data)
-	}
 
 	return nil
 }

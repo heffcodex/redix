@@ -30,14 +30,14 @@ func NewClient(config Config) (*Client, error) {
 		opts.ClientName = config.Name
 	}
 
-	if err = config.Cert.setupTLS(opts.TLSConfig); err != nil {
-		return nil, fmt.Errorf("setup TLS: %w", err)
+	if opts.TLSConfig != nil {
+		if err = config.Cert.setupTLS(opts.TLSConfig); err != nil {
+			return nil, fmt.Errorf("setup TLS: %w", err)
+		}
 	}
 
-	rc := redis.NewClient(opts)
-
 	return &Client{
-		UniversalClient: rc,
+		UniversalClient: redis.NewClient(opts),
 		ns:              config.Namespace,
 	}, nil
 }

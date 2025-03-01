@@ -8,23 +8,13 @@ import (
 	"github.com/heffcodex/testcerts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/heffcodex/redix/internal"
 )
 
-func TestNamespace_String(t *testing.T) {
-	require.Equal(t, "foo", Namespace("foo").String())
-}
-
-func TestNamespace_Append(t *testing.T) {
-	assert.Equal(t, Namespace(""), Namespace("").Append(""))
-	assert.Equal(t, Namespace("foo"), Namespace("").Append("foo"))
-	assert.Equal(t, Namespace("foo:"), Namespace("foo").Append(""))
-	assert.Equal(t, Namespace("foo:bar"), Namespace("foo").Append("bar"))
-}
-
 func TestClientConfigCert_setupTLS(t *testing.T) {
-	t.Run("nil", func(t *testing.T) {
-		c := ConfigCert{}
-		require.NoError(t, c.setupTLS(nil))
+	t.Run("nil config", func(t *testing.T) {
+		require.Panics(t, func() { _ = new(ConfigCert).setupTLS(nil) })
 	})
 
 	t.Run("no cert", func(t *testing.T) {
@@ -52,22 +42,17 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 		t.Run("wrong file", func(t *testing.T) {
 			tc := &tls.Config{}
 
-			require.NoError(t, os.Setenv(envKey, "wrong"))
-			require.Error(t, c.setupTLS(tc))
+			t.Setenv(envKey, "wrong")
+			require.ErrorContains(t, c.setupTLS(tc), "read file")
 		})
 
 		t.Run("ok", func(t *testing.T) {
-			cert, key, err := testcerts.GenerateCertsToTempFile(os.TempDir())
+			certFile, _, err := testcerts.GenerateCertsToTempFile(os.TempDir())
 			require.NoError(t, err)
-
-			defer func() {
-				_ = os.Remove(cert)
-				_ = os.Remove(key)
-			}()
 
 			tc := &tls.Config{}
 
-			require.NoError(t, os.Setenv(envKey, cert))
+			t.Setenv(envKey, certFile)
 			require.NoError(t, c.setupTLS(tc))
 			assert.False(t, tc.InsecureSkipVerify)
 			assert.NotEmpty(t, tc.RootCAs)
@@ -79,7 +64,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 			c := ConfigCert{File: "wrong"}
 			tc := &tls.Config{}
 
-			require.Error(t, c.setupTLS(tc))
+			require.ErrorContains(t, c.setupTLS(tc), "read file")
 		})
 
 		t.Run("wrong contents", func(t *testing.T) {
@@ -88,22 +73,15 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 			err := os.WriteFile(filename, []byte("wrong"), 0o600)
 			require.NoError(t, err)
 
-			defer func() { _ = os.Remove(filename) }()
-
 			c := ConfigCert{File: filename}
 			tc := &tls.Config{}
 
-			require.Error(t, c.setupTLS(tc))
+			require.ErrorIs(t, c.setupTLS(tc), internal.ErrInvalidCertData)
 		})
 
 		t.Run("ok", func(t *testing.T) {
-			cert, key, err := testcerts.GenerateCertsToTempFile(os.TempDir())
+			cert, _, err := testcerts.GenerateCertsToTempFile(os.TempDir())
 			require.NoError(t, err)
-
-			defer func() {
-				_ = os.Remove(cert)
-				_ = os.Remove(key)
-			}()
 
 			c := ConfigCert{File: cert}
 			tc := &tls.Config{}
@@ -119,7 +97,7 @@ func TestClientConfigCert_setupTLS(t *testing.T) {
 			c := ConfigCert{Data: []byte("wrong")}
 			tc := &tls.Config{}
 
-			require.Error(t, c.setupTLS(tc))
+			require.ErrorIs(t, c.setupTLS(tc), internal.ErrInvalidCertData)
 		})
 
 		t.Run("ok", func(t *testing.T) {

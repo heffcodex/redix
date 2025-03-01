@@ -8,11 +8,9 @@ import (
 	"os"
 )
 
-func SetupTLSFile(cfg *tls.Config, file string) error {
-	if file == "" {
-		return nil
-	}
+var ErrInvalidCertData = errors.New("invalid certificate data")
 
+func SetupTLSFile(cfg *tls.Config, file string) error {
 	data, err := os.ReadFile(file)
 	if err != nil {
 		return fmt.Errorf("read file: %w", err)
@@ -24,7 +22,7 @@ func SetupTLSFile(cfg *tls.Config, file string) error {
 func SetupTLSData(cfg *tls.Config, data []byte) error {
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(data) {
-		return errors.New("no valid certificate")
+		return ErrInvalidCertData
 	}
 
 	cfg.InsecureSkipVerify = false

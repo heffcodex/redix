@@ -1,11 +1,11 @@
 module github.com/heffcodex/redix
 
-go 1.20
+go 1.24.0
 
 require (
 	github.com/heffcodex/testcerts v1.1.0
-	github.com/redis/go-redis/v9 v9.5.3
-	github.com/stretchr/testify v1.9.0
+	github.com/redis/go-redis/v9 v9.7.1
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
