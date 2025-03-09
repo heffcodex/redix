@@ -1,9 +1,9 @@
 module github.com/heffcodex/redix
 
-go 1.24.0
+go 1.24.1
 
 require (
-	github.com/heffcodex/testcerts v1.1.0
+	github.com/madflojo/testcerts v1.4.0
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/stretchr/testify v1.10.0
 )
